@@ -63,6 +63,29 @@
              (get-in response [:headers "content-type"])
              "text/plain")))))
 
+  (testing "setting max idle timeout"
+    (let [server (run-jetty hello-world {:port 4347
+                                         :ssl-port 4348
+                                         :keystore "test/keystore.jks"
+                                         :key-password "password"
+                                         :join? false
+                                         :max-idle-timeout 5000})
+          connectors (. server getConnectors)]
+      (is (= 5000 (. (first connectors) getMaxIdleTime)))
+      (is (= 5000 (. (second connectors) getMaxIdleTime)))
+      (.stop server)))
+
+  (testing "using the default max idle time"
+    (let [server (run-jetty hello-world {:port 4347
+                                         :ssl-port 4348
+                                         :keystore "test/keystore.jks"
+                                         :key-password "password"
+                                         :join? false})
+          connectors (. server getConnectors)]
+      (is (= 200000 (. (first connectors) getMaxIdleTime)))
+      (is (= 200000 (. (second connectors) getMaxIdleTime)))
+      (.stop server)))
+
   (testing "custom content-type"
     (with-server (content-type-handler "text/plain;charset=UTF-16;version=1") {:port 4347}
       (let [response (http/get "http://localhost:4347")]
