@@ -68,6 +68,7 @@
   :port         - the port to listen on (defaults to 80)
   :host         - the hostname to listen on
   :join?        - blocks the thread until server ends (defaults to true)
+  :daemon?      - use daemon threads (defaults to false)
   :ssl?         - allow connections over HTTPS
   :ssl-port     - the SSL port to listen on (defaults to 443, implies :ssl?)
   :keystore     - the keystore to use for SSL connections
@@ -75,14 +76,19 @@
   :truststore   - a truststore to use for SSL connections
   :trust-password - the password to the truststore
   :max-threads  - the maximum number of threads to use (default 50)
-  :max-idle-timeout  - the maximum idle time in milliseconds for a connection (default 200000)
+  :min-threads  - the minimum number of threads to use (default 8)
+  :max-idle-time  - the maximum idle time in milliseconds for a connection (default 200000)
   :client-auth  - SSL client certificate authenticate, may be set to :need,
                   :want or :none (defaults to :none)"
   [handler options]
-  (let [^Server s (create-server (dissoc options :configurator))]
+  (let [^Server s (create-server (dissoc options :configurator))
+        ^QueuedThreadPool p (QueuedThreadPool. ^Integer (options :max-threads 50))]
+    (.setMinThreads p (options :min-threads 8))
+    (when (:daemon? options false)
+      (.setDaemon p true))
     (doto s
       (.setHandler (proxy-handler handler))
-      (.setThreadPool (QueuedThreadPool. (options :max-threads 50))))
+      (.setThreadPool p))
     (when-let [configurator (:configurator options)]
       (configurator s))
     (.start s)
