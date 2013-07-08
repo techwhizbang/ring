@@ -69,7 +69,7 @@
                                          :keystore "test/keystore.jks"
                                          :key-password "password"
                                          :join? false
-                                         :max-idle-timeout 5000})
+                                         :max-idle-time 5000})
           connectors (. server getConnectors)]
       (is (= 5000 (. (first connectors) getMaxIdleTime)))
       (is (= 5000 (. (second connectors) getMaxIdleTime)))
@@ -84,6 +84,21 @@
           connectors (. server getConnectors)]
       (is (= 200000 (. (first connectors) getMaxIdleTime)))
       (is (= 200000 (. (second connectors) getMaxIdleTime)))
+      (.stop server)))
+
+  (testing "setting min-threads"
+    (let [server (run-jetty hello-world {:port 4347
+                                         :min-threads 3
+                                         :join? false})
+          thread-pool (. server getThreadPool)]
+      (is (= 3 (. thread-pool getMinThreads)))
+      (.stop server)))
+
+  (testing "default min-threads"
+    (let [server (run-jetty hello-world {:port 4347
+                                         :join? false})
+          thread-pool (. server getThreadPool)]
+      (is (= 8 (. thread-pool getMinThreads)))
       (.stop server)))
 
   (testing "custom content-type"

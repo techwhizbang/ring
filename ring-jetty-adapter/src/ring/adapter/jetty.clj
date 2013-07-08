@@ -44,7 +44,7 @@
   (doto (SslSelectChannelConnector. (ssl-context-factory options))
     (.setPort (options :ssl-port 443))
     (.setHost (options :host))
-    (.setMaxIdleTime (options :max-idle-timeout 200000))))
+    (.setMaxIdleTime (options :max-idle-time 200000))))
 
 (defn- create-server
   "Construct a Jetty Server instance."
@@ -52,7 +52,7 @@
   (let [connector (doto (SelectChannelConnector.)
                     (.setPort (options :port 80))
                     (.setHost (options :host))
-                    (.setMaxIdleTime (options :max-idle-timeout 200000)))
+                    (.setMaxIdleTime (options :max-idle-time 200000)))
         server    (doto (Server.)
                     (.addConnector connector)
                     (.setSendDateHeader true))]
